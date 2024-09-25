@@ -8,20 +8,6 @@ const userSchema = new mongoose.Schema({
     firstName : String,
     lastName : String,
 })
-// const locationSchema = new mongoose.Schema({
-//     name : String,
-//     latitude : String,
-//     longitude : String,
-// })
-
-// const satelliteLocationSchema = new mongoose.Schema({
-//     name: String,
-//     latitude: Number,
-//     longitude: Number,
-//     altitude: Number,
-//     type: String,
-//     userId: mongoose.Schema.Types.ObjectId
-// }) 
 
 const satelliteSchema = new mongoose.Schema({
     userId: {
