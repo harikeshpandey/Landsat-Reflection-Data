@@ -10,12 +10,31 @@ export default function Navbar() {
   const [isLoading, setIsLoading] = useState(false);
   const [newLat, setNewLat] = useState('');
   const [newLng, setNewLng] = useState('');
+  const [compareData , setCompareData] = useState(null);
   const [visualizedData, setVisualizedData] = useState(null);
+  const [selectedLayer, setSelectedLayer] = useState('NDVI');
   const navigate = useNavigate();
+
+  const layerOptions = [
+    { value: 'NDVI', label: 'NDVI (Normalized Difference Vegetation Index)' },
+    { value: 'FALSE-COLOR', label: 'False Color Vegetation' },
+    { value: 'TRUE-COLOR-S2L2A', label: 'True Color S2L2A' },
+    { value: 'MOISTURE-INDEX', label: 'Moisture Index' },
+    {value : 'BATHYMETRIC' , label : 'Bathymetric'},
+    { value : 'AGRICULTURE' , label : 'Agriculture'},
+    { value : 'GEOLOGY' , label : 'GEOLOGY'},
+    { value : 'FALSE-COLOR-URBAN' , label : 'False Color Urban'},
+    { value : 'NATURAL-COLOR' , label : 'Natural Color (True Color)'},
+    { value : 'TEMPERATURE' , label : 'Temperature Burn Out Index'}
+  ];
 
   const handleLoginClick = () => {
     navigate('/login');
   };
+
+  const handleNotiClick =() =>{
+    navigate('/notification')
+  }
 
   const handleAddCoordinates = () => {
     if (newLat && newLng) {
@@ -33,23 +52,23 @@ export default function Navbar() {
   const handleVisualize = async (coord) => {
     setIsLoading(true);
     try {
-      const wmsUrl = new URL('https://services-uswest2.sentinel-hub.com/ogc/wms/5e4aad10-3a4f-4d0d-9c60-53a53b6ea5b2');
+      const wmsUrl = new URL('https://services.sentinel-hub.com/ogc/wms/56371f9c-8768-4893-9f25-cbb691bf016f');
       
       const params = {
         SERVICE: 'WMS',
         REQUEST: 'GetMap',
-        // FORMAT: 'image/png',
-        LAYERS: 'NDVI',
+        FORMAT: 'image/png',
+        LAYERS: selectedLayer,
         CRS: 'EPSG:4326',
-        BBOX: `${coord.lng-0.005},${coord.lat-0.005},${coord.lng+0.005},${coord.lat+0.005}`,
+        BBOX: `${coord.lng-0.02},${coord.lat-0.02},${coord.lng+0.02},${coord.lat+0.02}`,
         WIDTH: '512',
         HEIGHT: '512',
-        VERSION: '1.3.0'
+        VERSION: '1.3.0',
       };
       Object.keys(params).forEach(key => 
         wmsUrl.searchParams.append(key, params[key])
       );
-
+  
       const response = await fetch(wmsUrl.toString());
       
       if (!response.ok) {
@@ -65,6 +84,43 @@ export default function Navbar() {
       setIsLoading(false);
     }
   };
+  const handleCompare = async (coord) => {
+    setIsLoading(true);
+    try {
+      const wmsUrl = new URL('https://services.sentinel-hub.com/ogc/wms/56371f9c-8768-4893-9f25-cbb691bf016f');
+      
+      const params = {
+        SERVICE: 'WMS',
+        REQUEST: 'GetMap',
+        FORMAT: 'image/png',
+        LAYERS: selectedLayer,
+        CRS: 'EPSG:4326',
+        BBOX: `${coord.lng-0.02},${coord.lat-0.02},${coord.lng+0.02},${coord.lat+0.02}`,
+        WIDTH: '512',
+        HEIGHT: '512',
+        VERSION: '1.3.0',
+      };
+      Object.keys(params).forEach(key => 
+        wmsUrl.searchParams.append(key, params[key])
+      );
+  
+      const response = await fetch(wmsUrl.toString());
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
+      setCompareData(imageUrl);
+    } catch (error) {
+      console.error('Error fetching WMS data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  
 
   const removeCoordinate = (index) => {
     if (activeTab === 'visualize') {
@@ -73,10 +129,10 @@ export default function Navbar() {
       setCompareCoords(compareCoords.filter((_, i) => i !== index));
     }
   };
-
+  
   return (
     <div className="relative">
-      {/* Main Navbar - fixed height */}
+      {/* Main Navbar remains the same */}
       <nav className="bg-[#1a1a1a] text-white px-4 h-14 flex items-center border-b border-[#333333]">
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center">
@@ -90,6 +146,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
+            
             <button
               onClick={handleLoginClick}
               className="px-4 py-1.5 bg-[#ccde2c] text-black rounded hover:bg-[#bfd012] transition-colors"
@@ -100,10 +157,9 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Sidebar - absolute positioning */}
+      {/* Sidebar with new layer selection */}
       {isSidebarOpen && (
         <div className="absolute top-14 left-0 w-80 bg-[#2a2a2a] h-[calc(100vh-3.5rem)] z-50">
-          {/* Tab Buttons */}
           <div className="flex border-b border-[#404040]">
             <button
               onClick={() => setActiveTab('visualize')}
@@ -124,6 +180,23 @@ export default function Navbar() {
           </div>
 
           <div className="p-4 overflow-y-auto h-[calc(100%-3.5rem)]">
+            {activeTab === 'visualize' && (
+              <div className="mb-4">
+                <label className="block text-white mb-2">Select Layer</label>
+                <select
+                  value={selectedLayer}
+                  onChange={(e) => setSelectedLayer(e.target.value)}
+                  className="w-full p-2 bg-[#333333] text-white rounded border border-[#404040] focus:outline-none focus:border-[#ccde2c]"
+                >
+                  {layerOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Input Fields */}
             <div className="mb-4">
               <input
@@ -170,7 +243,7 @@ export default function Navbar() {
                       className="w-full py-1 px-2 bg-[#ccde2c] text-black rounded hover:bg-[#bfd012] transition-colors flex items-center justify-center"
                     >
                       <Eye size={16} className="mr-1" />
-                      Visualize
+                      Visualize {selectedLayer}
                     </button>
                   </div>
                 ))
@@ -197,14 +270,6 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
       {/* Visualization Overlay */}
       {(isLoading || visualizedData) && (
         <div className="fixed top-16 right-4 w-64 z-50">
@@ -216,15 +281,23 @@ export default function Navbar() {
           
           {visualizedData && (
             <div className="bg-white p-4 rounded-lg shadow-lg">
-              <h2 className="text-lg font-semibold mb-2">Visualization Result</h2>
+              <h2 className="text-lg font-semibold mb-2">{selectedLayer} Visualization</h2>
               <img
                 src={visualizedData}
-                alt="Satellite Visualization"
+                alt={`${selectedLayer} Visualization`}
                 className="w-full h-auto rounded"
               />
             </div>
           )}
         </div>
+      )}
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        />
       )}
     </div>
   );
