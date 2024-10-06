@@ -13,7 +13,9 @@ export default function Navbar() {
   const [compareData , setCompareData] = useState(null);
   const [visualizedData, setVisualizedData] = useState(null);
   const [selectedLayer, setSelectedLayer] = useState('NDVI');
-  const [satellitePasses , setSattelitePasses] = useState({});
+  // const [satellitePasses , setSatellitePasses] = useState({});
+
+  const [satelliteData , setSatelliteData] = useState({});
 
   const navigate = useNavigate();
 
@@ -53,7 +55,7 @@ export default function Navbar() {
         return null;
       }
   
-      return data.passes || [];
+      return data;
     } catch (error) {
       console.error('Error fetching satellite passes:', error);
       return [];
@@ -72,15 +74,18 @@ export default function Navbar() {
     if (newLat && newLng) {
       const newCoord = { lat: parseFloat(newLat), lng: parseFloat(newLng) };
       try {
-        const passes = await fetchSatellitePasses(newLat, newLng);
-        console.log('Fetched passes:', passes); // Debug log
+        const satelliteInfo = await fetchSatellitePasses(newLat, newLng);
+        console.log('Fetched satellite info:', satelliteInfo);
         
+        const coordKey = `${newLat},${newLng}`;
         if (activeTab === 'visualize') {
-          setVisualizeCoords([...visualizeCoords, newCoord]);
-          setSatellitePasses(prevPasses => ({
-            ...prevPasses,
-            [`${newLat},${newLng}`]: passes
-          }));
+          setVisualizeCoords([...visualizeCoords, { ...newCoord, key: coordKey }]);
+          if (satelliteInfo) {
+            setSatelliteData(prevData => ({
+              ...prevData,
+              [coordKey]: satelliteInfo
+            }));
+          }
         } else {
           setCompareCoords([...compareCoords, newCoord]);
         }
@@ -91,6 +96,8 @@ export default function Navbar() {
       setNewLng('');
     }
   };
+
+  
 
   const handleVisualize = async (coord) => {
     setIsLoading(true);
@@ -167,10 +174,22 @@ export default function Navbar() {
 
   const removeCoordinate = (index) => {
     if (activeTab === 'visualize') {
+      const removedCoord = visualizeCoords[index];
+      const coordKey = `${removedCoord.lat},${removedCoord.lng}`;
       setVisualizeCoords(visualizeCoords.filter((_, i) => i !== index));
+      setSatelliteData(prevData => {
+        const newData = { ...prevData };
+        delete newData[coordKey];
+        return newData;
+      });
     } else {
       setCompareCoords(compareCoords.filter((_, i) => i !== index));
     }
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return 
+    new Date(timestamp * 1000).toLocaleString();
   };
   
   return (
@@ -245,15 +264,15 @@ export default function Navbar() {
               <input
                 type="number"
                 placeholder="Latitude"
-                value={newLat}
-                onChange={(e) => setNewLat(e.target.value)}
+                value={newLng}
+                onChange={(e) => setNewLng(e.target.value)}
                 className="w-full p-2 mb-2 bg-[#333333] text-white rounded"
               />
               <input
                 type="number"
                 placeholder="Longitude"
-                value={newLng}
-                onChange={(e) => setNewLng(e.target.value)}
+                value={newLat}
+                onChange={(e) => setNewLat(e.target.value)}
                 className="w-full p-2 mb-2 bg-[#333333] text-white rounded"
               />
               <button
@@ -271,8 +290,8 @@ export default function Navbar() {
                   <div key={index} className="bg-[#333333] p-2 rounded">
                     <div className="flex justify-between items-center mb-2">
                       <div className="text-white">
-                        <div>Lat: {coord.lat}</div>
-                        <div>Lng: {coord.lng}</div>
+                        <div>Lat: {coord.lng}</div>
+                        <div>Lng: {coord.lat}</div>
                       </div>
                       <button
                         onClick={() => removeCoordinate(index)}
@@ -281,6 +300,9 @@ export default function Navbar() {
                         <Trash size={16} />
                       </button>
                     </div>
+                    <span>
+                     
+                    </span>
                     <button
                       onClick={() => handleVisualize(coord)}
                       className="w-full py-1 px-2 bg-[#ccde2c] text-black rounded hover:bg-[#bfd012] transition-colors flex items-center justify-center"
