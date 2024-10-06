@@ -125,7 +125,7 @@ The app uses the **Sentinel Hub WMS (Web Map Service)** to fetch satellite image
 
 ## License
 
-This project is licensed under the MIT License.xyz
+This project is licensed under the MIT License.
 
 --- 
 
