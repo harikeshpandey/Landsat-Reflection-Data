@@ -163,4 +163,5 @@ router.put("/notification-settings", authMiddleware, async (req, res) => {
     }
 });
 
+
 module.exports = router;
