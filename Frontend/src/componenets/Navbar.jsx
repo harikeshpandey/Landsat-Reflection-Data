@@ -15,9 +15,6 @@ export default function Navbar() {
   const [selectedLayer, setSelectedLayer] = useState('NDVI');
   const [satellitePasses , setSattelitePasses] = useState({});
 
-  const N2YO_API_KEY = 'CT8VD3-BVWTP5-B2PPG8-5CJP';
-  const SENTINEL_2_NORAD_ID = 49260;
-
   const navigate = useNavigate();
 
   const layerOptions = [
@@ -35,26 +32,34 @@ export default function Navbar() {
 
   const fetchSatellitePasses = async (lat, lng) => {
     try {
-      const url =` https://api.n2yo.com/rest/v1/satellite/positions/${SENTINEL_2_NORAD_ID}/${lat}/${lng}/0/2/&apiKey=${N2YO_API_KEY}`;
-      console.log('Fetching satellite passes:', url); // Debug log
-      
-      const response = await fetch(url);
+      const url = 'http://localhost:3456/api/v1/user/n2yo';
+      console.log('Fetching satellite passes from:', url);
+  
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ lat, lng })
+      });
+  
       const data = await response.json();
-      
-      console.log('Satellite API response:', data); // Debug log
-      
+  
+      console.log('Satellite API response:', data);
+  
       if (data.error) {
         console.error('API Error:', data.error);
         return null;
       }
-      
+  
       return data.passes || [];
     } catch (error) {
       console.error('Error fetching satellite passes:', error);
       return [];
     }
   };
-
+  
   const handleLoginClick = () => {
     navigate('/login');
   };
