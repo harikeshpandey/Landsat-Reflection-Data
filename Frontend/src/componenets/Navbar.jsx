@@ -70,6 +70,23 @@ export default function Navbar() {
     navigate('/notification')
   }
 
+  const handlePasteCoordinates = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      const [lat, lng] = clipboardText.split(',').map(coord => coord.trim());
+      
+      if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+        setNewLat(lng);  // Note: In your existing code, lat and lng seem to be swapped
+        setNewLng(lat);  // So maintaining that convention here
+      } else {
+        console.error('Invalid coordinate format in clipboard');
+        // Optionally, you could show an error message to the user
+      }
+    } catch (err) {
+      console.error('Failed to read clipboard contents:', err);
+    }
+  };
+
   const handleAddCoordinates = async () => {
     if (newLat && newLng) {
       const newCoord = { lat: parseFloat(newLat), lng: parseFloat(newLng) };
@@ -261,13 +278,22 @@ export default function Navbar() {
 
             {/* Input Fields */}
             <div className="mb-4">
-              <input
-                type="number"
-                placeholder="Latitude"
-                value={newLng}
-                onChange={(e) => setNewLng(e.target.value)}
-                className="w-full p-2 mb-2 bg-[#333333] text-white rounded"
-              />
+              <div className="flex mb-2">
+                <button
+                  onClick={handlePasteCoordinates}
+                  className="flex items-center justify-center px-4 py-2 bg-[#404040] text-white rounded-l hover:bg-[#505050] transition-colors"
+                >
+                  <Clipboard className="h-4 w-4 mr-2" />
+                  Paste
+                </button>
+                <input
+                  type="number"
+                  placeholder="Latitude"
+                  value={newLng}
+                  onChange={(e) => setNewLng(e.target.value)}
+                  className="flex-grow p-2 bg-[#333333] text-white rounded-r"
+                />
+              </div>
               <input
                 type="number"
                 placeholder="Longitude"
