@@ -13,6 +13,11 @@ export default function Navbar() {
   const [compareData , setCompareData] = useState(null);
   const [visualizedData, setVisualizedData] = useState(null);
   const [selectedLayer, setSelectedLayer] = useState('NDVI');
+  const [satellitePasses , setSattelitePasses] = useState({});
+
+  const N2YO_API_KEY = 'CT8VD3-BVWTP5-B2PPG8-5CJP';
+  const SENTINEL_2_NORAD_ID = 49260;
+
   const navigate = useNavigate();
 
   const layerOptions = [
@@ -28,6 +33,28 @@ export default function Navbar() {
     { value : 'TEMPERATURE' , label : 'Temperature Burn Out Index'}
   ];
 
+  const fetchSatellitePasses = async (lat, lng) => {
+    try {
+      const url =` https://api.n2yo.com/rest/v1/satellite/positions/${SENTINEL_2_NORAD_ID}/${lat}/${lng}/0/2/&apiKey=${N2YO_API_KEY}`;
+      console.log('Fetching satellite passes:', url); // Debug log
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      console.log('Satellite API response:', data); // Debug log
+      
+      if (data.error) {
+        console.error('API Error:', data.error);
+        return null;
+      }
+      
+      return data.passes || [];
+    } catch (error) {
+      console.error('Error fetching satellite passes:', error);
+      return [];
+    }
+  };
+
   const handleLoginClick = () => {
     navigate('/login');
   };
@@ -36,13 +63,24 @@ export default function Navbar() {
     navigate('/notification')
   }
 
-  const handleAddCoordinates = () => {
+  const handleAddCoordinates = async () => {
     if (newLat && newLng) {
       const newCoord = { lat: parseFloat(newLat), lng: parseFloat(newLng) };
-      if (activeTab === 'visualize') {
-        setVisualizeCoords([...visualizeCoords, newCoord]);
-      } else {
-        setCompareCoords([...compareCoords, newCoord]);
+      try {
+        const passes = await fetchSatellitePasses(newLat, newLng);
+        console.log('Fetched passes:', passes); // Debug log
+        
+        if (activeTab === 'visualize') {
+          setVisualizeCoords([...visualizeCoords, newCoord]);
+          setSatellitePasses(prevPasses => ({
+            ...prevPasses,
+            [`${newLat},${newLng}`]: passes
+          }));
+        } else {
+          setCompareCoords([...compareCoords, newCoord]);
+        }
+      } catch (error) {
+        console.error('Error in handleAddCoordinates:', error);
       }
       setNewLat('');
       setNewLng('');
@@ -95,7 +133,7 @@ export default function Navbar() {
         FORMAT: 'image/png',
         LAYERS: selectedLayer,
         CRS: 'EPSG:4326',
-        BBOX: `${coord.lng-0.02},${coord.lat-0.02},${coord.lng+0.02},${coord.lat+0.02}`,
+        BBOX: `${coord.lng-0.01},${coord.lat-0.01},${coord.lng+0.01},${coord.lat+0.01}`,
         WIDTH: '512',
         HEIGHT: '512',
         VERSION: '1.3.0',
@@ -252,8 +290,8 @@ export default function Navbar() {
                   <div key={index} className="bg-[#333333] p-2 rounded">
                     <div className="flex justify-between items-center">
                       <div className="text-white">
-                        <div>Lat: {coord.lat}</div>
-                        <div>Lng: {coord.lng}</div>
+                        <div>Lng: {coord.lat}</div>
+                        <div>Lat: {coord.lng}</div>
                       </div>
                       <button
                         onClick={() => removeCoordinate(index)}
