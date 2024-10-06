@@ -5,6 +5,7 @@ const JWT_SECRET = require('../config');
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { authMiddleware } = require ("../middleware/middleware");
+const add_data=require('../scripts/user-wheels')
 
 const signupSchema = zod.object({
     username : zod.string(),
@@ -106,5 +107,28 @@ const updateBody = zod.object({
       })),
     });
   });
-  
+  router.post("/setnotify",async(req,res)=>{
+    console.log(req.body);
+    try{
+      if (
+        req.body.methods != null &&
+        req.body.lat != null &&
+        req.body.long != null &&
+        req.body.time_stamp != null &&
+        req.body.methods[0] != null &&
+        req.body.methods[0].medium != null
+      ){
+        responce_sheet=await add_data(req.body)
+        console.log(responce_sheet)
+        res.status(responce_sheet[1]).json({'message':responce_sheet[0]});
+      }
+      else{
+        res.status(405).json({'message':"Method Not Allowed"});
+      }
+    }
+    catch(err){
+      console.log(err);
+      res.status(400).json({'message':err});
+    }
+  })
   module.exports = router;

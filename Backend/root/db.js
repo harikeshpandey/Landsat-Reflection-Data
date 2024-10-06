@@ -67,15 +67,11 @@ const landsatDataSchema = new mongoose.Schema({
 });
 
 
-const Location = mongoose.model("Location", locationSchema);
-const SatLoc = mongoose.model("SatLoc", satelliteLocationSchema);
 const User = mongoose.model("User", userSchema);
 const Satellite = mongoose.model('Satellite', satelliteSchema);
 const LandsatData = mongoose.model('LandsatData', landsatDataSchema);
 
 module.exports ={
-    Location,
-    SatLoc,
     User,
     Satellite,
     LandsatData,
