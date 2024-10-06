@@ -1,0 +1,16 @@
+{
+  "table": [
+    {
+      "time_stamp": 1728172766,
+      "user_email": "11.rachitpandey@gmail.com",
+      "long": 266.45,
+      "lat": 28.902,
+      "methods": [
+        {
+          "medium": "email",
+          "details": "11.rachitpandey@gmail.com"
+        }
+      ]
+    }
+  ]
+}
