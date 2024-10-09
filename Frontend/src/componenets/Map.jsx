@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet'; // Import useMap
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { CheckCircle } from 'lucide-react';
@@ -20,7 +20,6 @@ function LocationMarker({ position }) {
 
   useEffect(() => {
     if (position) {
-      // Automatically copy coordinates to clipboard when position updates
       const coordinates = `${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}`;
       navigator.clipboard.writeText(coordinates).then(() => {
         setCopied(true);
@@ -53,10 +52,9 @@ const SearchControl = ({ setMarkerPosition }) => {
   const map = useMap(); // Use the correct hook
 
   useEffect(() => {
-    // Initialize the geocoder control and add it to the map
     const geocoder = L.Control.geocoder({
-      position: 'topleft',
-      defaultMarkGeocode: false
+      position: 'topright', // Changed to top right
+      defaultMarkGeocode: false,
     })
       .on('markgeocode', function (e) {
         const bbox = e.geocode.bbox;
@@ -64,7 +62,7 @@ const SearchControl = ({ setMarkerPosition }) => {
           bbox.getSouthEast(),
           bbox.getNorthEast(),
           bbox.getNorthWest(),
-          bbox.getSouthWest()
+          bbox.getSouthWest(),
         ]);
         map.fitBounds(poly.getBounds());
 
