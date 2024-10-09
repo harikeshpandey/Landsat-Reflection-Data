@@ -55,7 +55,7 @@ function LocationMarker() {
 
 export default function MapView() {
   return (
-    <div className="border rounded-lg p-4 shadow-sm">
+    <div className="border rounded-lg p-4 shadow-sm h-full w-full">
       <div className="mb-4 text-sm text-gray-600">
         Click anywhere on the map to get coordinates. They will be automatically copied to your clipboard.
       </div>
